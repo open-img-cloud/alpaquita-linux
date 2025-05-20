@@ -35,7 +35,7 @@ jobs:
           virt-customize -a $BASE_OS_IMAGE \
             --run-command 'apk update' \
             --run-command 'apk upgrade' \
-            --run-command 'apk add cloud-init ipy3-netiface util-linux e2fsprogs-extra qemu-guest-agent' \
+            --run-command 'apk add cloud-init py3-netiface util-linux e2fsprogs-extra qemu-guest-agent' \
             --run-command 'setup-cloud-init'
             # --copy-in config/cloud.cfg:/etc/cloud/
  
