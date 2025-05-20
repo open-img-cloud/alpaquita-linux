@@ -1,0 +1,47 @@
+name: build_image
+
+env:
+  version: ${{github.ref_name}}
+  OS_URL:  https://packages.bell-sw.com/alpaquita/glibc/stream/releases/x86_64/alpaquita-stream-latest-glibc-x86_64.qcow2.xz
+  COMPRESS_BASE_IMAGE: alpaquita-stream-latest-glibc-x86_64.qcow2.xz
+  BASE_OS_IMAGE: alpaquita-stream-latest-glibc-x86_64.qcow2
+
+on:
+  push:
+    tags:
+      - '*'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: [self-hosted, Linux, kvm]
+    container:
+      image: ghcr.io/net-architect-cloud/docker-libguestfs-tools:latest
+      options: --device=/dev/kvm --volume ${{ github.workspace }}/shared:/tmp/docker_shared
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download base image
+        run: |
+          wget "$OS_URL" -O $COMPRESS_BASE_IMAGE
+	  gunzip COMPRESS_BASE_IMAGE 
+      
+      - name: Modify base OS image
+        run: |
+          virt-customize -a $BASE_OS_IMAGE \
+            --update \
+            --install cloud-init \
+            --copy-in config/cloud.cfg:/etc/cloud/ \
+ 
+      - name: Sysprep & Sparsify image
+        run: |
+            virt-sysprep -a $BASE_OS_IMAGE
+            virt-sparsify --convert qcow2 --compress $BASE_OS_IMAGE alpaquita-${{ env.version }}-glibc-x86_64.qcow2
+            md5sum alpaquita-${{ env.version }}-glibc-x86_64.qcow2 > md5.txt
+            sha1sum -b alpaquita-${{ env.version }}-glibc-x86_64.qcow2 > sha1.txt
+            sha256sum -b alpaquita-${{ env.version }}-glibc-x86_64.qcow2 > sha256.txt
+            cp alpaquita-${{ env.version }}-glibc-x86_64.qcow2 /shared/
+            cp md5.txt sha1.txt sha256.txt /shared/
