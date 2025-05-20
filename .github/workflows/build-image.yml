@@ -15,7 +15,7 @@ jobs:
     runs-on: [self-hosted, Linux, kvm]
     container:
       image: ghcr.io/net-architect-cloud/docker-libguestfs-tools:latest
-      options: --device=/dev/kvm --volume ${{ github.workspace }}/shared:/shared
+      options: --device=/dev/kvm --volume /tmp:/shared
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,5 +39,5 @@ jobs:
             md5sum alpaquita-${{ env.version }}-glibc-x86_64.qcow2 > md5.txt
             sha1sum -b alpaquita-${{ env.version }}-glibc-x86_64.qcow2 > sha1.txt
             sha256sum -b alpaquita-${{ env.version }}-glibc-x86_64.qcow2 > sha256.txt
-            cp alpaquita-${{ env.version }}-glibc-x86_64.qcow2 /shared/
-            cp md5.txt sha1.txt sha256.txt /shared/
+            cp alpaquita-${{ env.version }}-glibc-x86_64.qcow2 /shared
+            cp md5.txt sha1.txt sha256.txt /shared
