@@ -4,12 +4,17 @@ env:
   OS_URL: https://packages.bell-sw.com/alpaquita/glibc/stream/releases/x86_64/alpaquita-stream-latest-glibc-x86_64.qcow2.xz
   COMPRESS_BASE_IMAGE: alpaquita-stream-latest-glibc-x86_64.qcow2.xz
   BASE_OS_IMAGE: alpaquita-stream-latest-glibc-x86_64.qcow2
+
+# Ajouter cette section de permissions
+permissions:
+  contents: write # Donne les droits d'écriture sur le contenu du dépôt
+
 on:
   push:
     tags:
       - '*'
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: [self-hosted, Linux, kvm]
