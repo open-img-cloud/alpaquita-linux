@@ -35,7 +35,9 @@ jobs:
           virt-customize -a $BASE_OS_IMAGE \
             --run-command 'apk update' \
             --run-command 'apk upgrade' \
-            --run-command 'apk add cloud-init util-linux e2fsprogs-extra qemu-guest-agent' \
+            --run-command 'apk add cloud-init util-linux chrony openssh-server-pam e2fsprogs-extra qemu-guest' \
+            --run-command 'rc-update add qemu-guest-agent default' \
+            --run-command 'rc-update add sshd default' \
             --run-command 'setup-cloud-init'
             # --copy-in config/cloud.cfg:/etc/cloud/
  
