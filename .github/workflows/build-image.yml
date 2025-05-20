@@ -27,8 +27,9 @@ jobs:
       - name: Modify base OS image
         run: |
           virt-customize -a $BASE_OS_IMAGE \
-            --update \
-            --install cloud-init \
+            --run-command 'apk update' \
+            --run-command 'apk upgrade' \
+            --run-command 'apk add cloud-init' \
             # --copy-in config/cloud.cfg:/etc/cloud/
  
       - name: Sysprep & Sparsify image
