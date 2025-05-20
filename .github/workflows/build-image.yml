@@ -48,7 +48,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.REF_NAME }}
+          tag_name: ${{ env.version }}
           release_name: Alpaquita Linux ${{ env.version }}
           draft: false
           prerelease: false
