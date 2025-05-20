@@ -41,3 +41,35 @@ jobs:
             sha256sum -b alpaquita-${{ env.version }}-glibc-x86_64.qcow2 > sha256.txt
             cp alpaquita-${{ env.version }}-glibc-x86_64.qcow2 /shared
             cp md5.txt sha1.txt sha256.txt /shared
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.REF_NAME }}
+          release_name: Alpaquita Linux ${{ env.version }}
+          draft: false
+          prerelease: false
+
+      - name: Upload image to release asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: alpaquita-${{ env.version }}-glibc-x86_64.qcow2
+          asset_name: alpaquita-${{ env.version }}-glibc-x86_64.qcow2
+          asset_content_type: application/octet-stream
+
+      - name: Add md5.txt file
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: md5.txt
+          asset_name: md5.txt
+          asset_content_type: text/plain
