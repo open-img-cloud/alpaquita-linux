@@ -46,15 +46,19 @@ jobs:
           virt-customize -a $BASE_OS_IMAGE \
             --run-command 'apk update' \
             --run-command 'apk upgrade' \
-            --run-command 'apk add cloud-init util-linux chrony openssh-server-pam e2fsprogs-extra qemu-guest-agent' \
+            --run-command 'apk add cloud-init util-linux chrony openssh-server-pam e2fsprogs-extra qemu-guest-agent syslinux' \
             --run-command 'rc-update add qemu-guest-agent default' \
             --run-command 'rc-update add sshd default' \
             --run-command 'setup-cloud-init' \
             --run-command 'mkdir -p /boot/extlinux' \
             --copy-in extlinux.conf:/boot/extlinux/ \
-            --run-command 'echo "console=ttyS0,115200n8" >> /etc/default/grub' \
+            --run-command 'echo "SERIAL 0 115200" >> /boot/extlinux/extlinux.conf' \
+            --run-command 'echo "GRUB_CMDLINE_LINUX=\"console=tty0 console=ttyS0,115200n8\"" >> /etc/default/grub' \
+            --run-command 'echo "GRUB_TERMINAL=\"console serial\"" >> /etc/default/grub' \
+            --run-command 'echo "GRUB_SERIAL_COMMAND=\"serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1\"" >> /etc/default/grub' \
             --run-command 'echo "ttyS0" >> /etc/securetty' \
-            --run-command 'echo "S0:12345:respawn:/sbin/agetty -L 115200 ttyS0 vt100" >> /etc/inittab'
+            --run-command 'echo "s0:12345:respawn:/sbin/agetty -L ttyS0 115200 vt100" >> /etc/inittab' \
+            --run-command 'if [ -x /sbin/update-grub ]; then /sbin/update-grub; fi'
             # --copy-in config/cloud.cfg:/etc/cloud/
  
       - name: Sysprep & Sparsify image
