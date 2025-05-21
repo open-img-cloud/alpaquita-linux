@@ -30,6 +30,17 @@ jobs:
           wget "$OS_URL" -O $COMPRESS_BASE_IMAGE
           xz -d $COMPRESS_BASE_IMAGE
           
+      - name: Create extlinux configuration file
+        run: |
+          cat > extlinux.conf << 'EOF'
+          DEFAULT Alpaquita
+          LABEL Alpaquita
+              MENU LABEL Alpaquita Linux
+              LINUX /boot/vmlinuz-lts
+              INITRD /boot/initramfs-lts
+              APPEND root=LABEL=ROOT console=tty0 console=ttyS0,115200n8
+          EOF
+          
       - name: Modify base OS image
         run: |
           virt-customize -a $BASE_OS_IMAGE \
@@ -40,12 +51,7 @@ jobs:
             --run-command 'rc-update add sshd default' \
             --run-command 'setup-cloud-init' \
             --run-command 'mkdir -p /boot/extlinux' \
-            --write '/boot/extlinux/extlinux.conf:DEFAULT Alpaquita
-      LABEL Alpaquita
-          MENU LABEL Alpaquita Linux
-          LINUX /boot/vmlinuz-lts
-          INITRD /boot/initramfs-lts
-          APPEND root=LABEL=ROOT console=tty0 console=ttyS0,115200n8' \
+            --copy-in extlinux.conf:/boot/extlinux/ \
             --run-command 'echo "console=ttyS0,115200n8" >> /etc/default/grub' \
             --run-command 'echo "ttyS0" >> /etc/securetty' \
             --run-command 'echo "S0:12345:respawn:/sbin/agetty -L 115200 ttyS0 vt100" >> /etc/inittab'
