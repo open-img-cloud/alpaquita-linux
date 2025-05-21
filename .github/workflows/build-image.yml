@@ -38,7 +38,17 @@ jobs:
             --run-command 'apk add cloud-init util-linux chrony openssh-server-pam e2fsprogs-extra qemu-guest-agent' \
             --run-command 'rc-update add qemu-guest-agent default' \
             --run-command 'rc-update add sshd default' \
-            --run-command 'setup-cloud-init'
+            --run-command 'setup-cloud-init' \
+            --run-command 'mkdir -p /boot/extlinux' \
+            --write '/boot/extlinux/extlinux.conf:DEFAULT Alpaquita
+      LABEL Alpaquita
+          MENU LABEL Alpaquita Linux
+          LINUX /boot/vmlinuz-lts
+          INITRD /boot/initramfs-lts
+          APPEND root=LABEL=ROOT console=tty0 console=ttyS0,115200n8' \
+            --run-command 'echo "console=ttyS0,115200n8" >> /etc/default/grub' \
+            --run-command 'echo "ttyS0" >> /etc/securetty' \
+            --run-command 'echo "S0:12345:respawn:/sbin/agetty -L 115200 ttyS0 vt100" >> /etc/inittab'
             # --copy-in config/cloud.cfg:/etc/cloud/
  
       - name: Sysprep & Sparsify image
