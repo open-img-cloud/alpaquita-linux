@@ -73,7 +73,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the GPL-3.0 License. See `LICENSE.md` for more information.
+Distributed under the GPL-2.0 License. See `LICENSE` for more information.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -82,25 +82,24 @@ Distributed under the GPL-3.0 License. See `LICENSE.md` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Kevin Allioli - [@linit_io](https://twitter.com/linit_io) - kevin@linit.io
+Kevin Allioli - [@linit_io](https://x.com/NetArchitect404) - kevin@netarch.cloud
 
-Project Link: [https://github.com/linitio/openstack-alpine-image](https://github.com/linitio/openstack-alpine-image)
+Project Link: [https://github.com/open-img-cloud/alpaquita-linux](https://github.com/open-img-cloud/alpaquita-linux)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-https://github.com/open-img-cloud/alpaquita-linux
 [contributors-shield]: https://img.shields.io/github/contributors/open-img-cloud/alpaquita-linux.svg?style=for-the-badge
 [contributors-url]: https://github.com/open-img-cloud/alpaquita-linux/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/open-img-cloud/alpaquita-linux.svg?style=for-the-badge
 [forks-url]: https://github.com/open-img-cloud/alpaquita-linux/network/members
-[stars-shield]: https://img.shields.io/github/stars/lopen-img-cloud/alpaquita-linux.svg?style=for-the-badge
+[stars-shield]: https://img.shields.io/github/stars/open-img-cloud/alpaquita-linux.svg?style=for-the-badge
 [stars-url]: https://github.com/open-img-cloud/alpaquita-linux/stargazers
 [issues-shield]: https://img.shields.io/github/issues/open-img-cloud/alpaquita-linux.svg?style=for-the-badge
 [issues-url]: https://github.com/open-img-cloud/alpaquita-linux/issues
 [license-shield]: https://img.shields.io/github/license/open-img-cloud/alpaquita-linux.svg?style=for-the-badge
-[license-url]: https://github.com/linitio/openstack-alpine-image/blob/master/LICENSE.md
+[license-url]: https://github.com/open-img-cloud/alpaquita-linux/blob/master/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/kevinallioli
