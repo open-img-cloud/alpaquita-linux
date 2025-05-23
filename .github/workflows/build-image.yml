@@ -36,11 +36,17 @@ jobs:
             --run-command 'apk update' \
             --run-command 'apk upgrade' \
             --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent' \
-            --run-command 'rc-update add qemu-guest-agent default' \
             --run-command 'rm /etc/default/grub' \
             --copy-in config/grub:/etc/default/ \
+            --copy-in scripts/serial-config.sh:/tmp/serial-config.sh \
+            --copy-in scripts/clean-user.sh:/tmp/clean-user.sh \
+            --run-command 'chmod +x /tmp/*.sh' \
+            --run-command '/tmp/serial-config.sh' \
+            --run-command '/tmp/clean-user.sh' \
+            --run-command 'rm /tmp/serial-config.sh /tmp/clean-user.sh' \
             --run-command 'grub-mkconfig -o /boot/grub/grub.cfg' \
-            --run-command 'setup-cloud-init'
+            --run-command 'setup-cloud-init' \
+            --run-command 'rc-update add qemu-guest-agent default'
  
       - name: Sysprep & Sparsify image
         run: |
