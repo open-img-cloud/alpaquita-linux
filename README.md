@@ -36,7 +36,7 @@
 This project is a simple port of Alpine Linux releases for OpenStack environments.  
 This image used the the project [alpine-make-vm-image](https://github.com/alpinelinux/alpine-make-vm-image "alpine-make-vm-image project") to build base image and we make some change to make it compatible with OpenStack environments and cloud-init.  
 
-This image is updated when Alpine Linux team released a new version of the OS [here](https://alpinelinux.org/releases/ "Alpine linux Release Inventory").
+This image is updated when Alpine Linux team released a new version of the OS [here](https://packages.bell-sw.com/browse/alpaquita/glibc/stream/releases/x86_64/ "Alpaquita Linux Repository").
 
 
 <p align="right">(<a href="#top">back to top</a>)</p>
@@ -45,9 +45,15 @@ This image is updated when Alpine Linux team released a new version of the OS [h
 
 1. Set your OpenStack environement variables
 2. Download the latest image from the [repository page](https://repo.openimages.cloud/alpaquita-linux/ "Images Repository")
-3. Upload image to your OpenStack environment
+3. Upload image to your OpenStack environment  
+
+   **For GLIBC:**
    ```sh
-   openstack image create --disk-format=qcow2 --container-format=bare --file alpaquita-<VERSION>-x86_64.qcow2  'Alpaquita Linux Stream (glibc)'
+   openstack image create --disk-format=qcow2 --container-format=bare --file alpaquita-<VERSION>-glibc-x86_64.qcow2  'Alpaquita Linux Stream (glibc)'
+   ```
+   **For MUSL:**
+   ```sh
+   openstack image create --disk-format=qcow2 --container-format=bare --file alpaquita-<VERSION>-musl-x86_64.qcow2  'Alpaquita Linux Stream (musl)'
    ```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
@@ -82,7 +88,7 @@ Distributed under the GPL-2.0 License. See `LICENSE` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Kevin Allioli - [@linit_io](https://x.com/NetArchitect404) - kevin@netarch.cloud
+Kevin Allioli - [@NetArchitect404](https://x.com/NetArchitect404) - kevin@netarch.cloud
 
 Project Link: [https://github.com/open-img-cloud/alpaquita-linux](https://github.com/open-img-cloud/alpaquita-linux)
 
