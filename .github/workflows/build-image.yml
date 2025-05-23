@@ -38,8 +38,8 @@ jobs:
             --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent' \
             --run-command 'rm /etc/default/grub' \
             --copy-in config/grub:/etc/default/ \
-            --copy-in scripts/serial-config.sh:/tmp/serial-config.sh \
-            --copy-in scripts/clean-user.sh:/tmp/clean-user.sh \
+            --copy-in scripts/serial-config.sh:/tmp/ \
+            --copy-in scripts/clean-user.sh:/tmp/ \
             --run-command 'chmod +x /tmp/*.sh' \
             --run-command '/tmp/serial-config.sh' \
             --run-command '/tmp/clean-user.sh' \
