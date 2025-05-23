@@ -37,7 +37,8 @@ jobs:
             --run-command 'apk upgrade' \
             --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent' \
             --run-command 'rc-update add qemu-guest-agent default' \
-            --copy-in config/grub.cfg:/etc/default/grub \
+            --run-command 'rm /etc/default/grub' \
+            --copy-in config/grub:/etc/default/ \
             --run-command 'grub-mkconfig -o /boot/grub/grub.cfg' \
             --run-command 'setup-cloud-init'
  
