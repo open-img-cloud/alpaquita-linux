@@ -35,7 +35,7 @@ jobs:
           virt-customize -a $BASE_OS_IMAGE \
             --run-command 'apk update' \
             --run-command 'apk upgrade' \
-            --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent' \
+            --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent dhcpd' \
             --run-command 'rm /etc/default/grub' \
             --copy-in config/grub:/etc/default/ \
             --copy-in config/cloud.cfg:/etc/cloud/ \
@@ -46,7 +46,8 @@ jobs:
             --run-command 'grub-mkconfig -o /boot/grub/grub.cfg' \
             --run-command 'setup-cloud-init' \
             --run-command 'rc-update add qemu-guest-agent default' \
-            --run-command 'rc-update add sshd default'
+            --run-command 'rc-update add sshd default' \
+            --run-command 'rc-update add dhcpd default'
  
       - name: Sysprep & Sparsify image
         run: |
