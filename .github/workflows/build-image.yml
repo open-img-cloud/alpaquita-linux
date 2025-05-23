@@ -5,9 +5,9 @@ env:
   COMPRESS_BASE_IMAGE: alpaquita-stream-latest-glibc-x86_64.qcow2.xz
   BASE_OS_IMAGE: alpaquita-stream-latest-glibc-x86_64.qcow2
 
-# Ajouter cette section de permissions
+
 permissions:
-  contents: write # Donne les droits d'écriture sur le contenu du dépôt
+  contents: write
 
 on:
   push:
@@ -39,6 +39,7 @@ jobs:
             --run-command 'rm /etc/default/grub' \
             --copy-in config/grub:/etc/default/ \
             --copy-in config/cloud.cfg:/etc/cloud/ \
+            --copy-in config/05_logging.cfg:/etc/cloud/cloud.cfg.d/ \
             --copy-in scripts/serial-config.sh:/tmp/ \
             --run-command 'chmod +x /tmp/*.sh' \
             --run-command '/tmp/serial-config.sh' \
