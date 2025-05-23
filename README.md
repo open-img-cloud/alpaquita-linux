@@ -13,7 +13,7 @@
 <br />
 <div align="center">
   <a href="[https://github.com/open-img-cloud/alpaquita-linux](https://github.com/open-img-cloud/alpaquita-linux)">
-    <img src="images/logo.svg" alt="Logo" width="250">
+    <img src="img/logo.png" alt="Logo" width="220">
   </a>
 
 <h3 align="center">Alpaquita Linux image for OpenStack</h3>
