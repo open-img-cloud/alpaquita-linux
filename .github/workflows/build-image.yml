@@ -30,36 +30,16 @@ jobs:
           wget "$OS_URL" -O $COMPRESS_BASE_IMAGE
           xz -d $COMPRESS_BASE_IMAGE
           
-      - name: Create extlinux configuration file
-        run: |
-          cat > extlinux.conf << 'EOF'
-          DEFAULT Alpaquita
-          LABEL Alpaquita
-              MENU LABEL Alpaquita Linux
-              LINUX /boot/vmlinuz-lts
-              INITRD /boot/initramfs-lts
-              APPEND root=LABEL=ROOT console=tty0 console=ttyS0,115200n8
-          EOF
-          
       - name: Modify base OS image
         run: |
           virt-customize -a $BASE_OS_IMAGE \
             --run-command 'apk update' \
             --run-command 'apk upgrade' \
-            --run-command 'apk add cloud-init util-linux chrony openssh-server-pam e2fsprogs-extra qemu-guest-agent syslinux' \
+            --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent' \
             --run-command 'rc-update add qemu-guest-agent default' \
-            --run-command 'rc-update add sshd default' \
-            --run-command 'setup-cloud-init' \
-            --run-command 'mkdir -p /boot/extlinux' \
-            --copy-in extlinux.conf:/boot/extlinux/ \
-            --run-command 'echo "SERIAL 0 115200" >> /boot/extlinux/extlinux.conf' \
-            --run-command 'echo "GRUB_CMDLINE_LINUX=\"console=tty0 console=ttyS0,115200n8\"" >> /etc/default/grub' \
-            --run-command 'echo "GRUB_TERMINAL=\"console serial\"" >> /etc/default/grub' \
-            --run-command 'echo "GRUB_SERIAL_COMMAND=\"serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1\"" >> /etc/default/grub' \
-            --run-command 'echo "ttyS0" >> /etc/securetty' \
-            --run-command 'echo "s0:12345:respawn:/sbin/agetty -L ttyS0 115200 vt100" >> /etc/inittab' \
-            --run-command 'if [ -x /sbin/update-grub ]; then /sbin/update-grub; fi'
-            # --copy-in config/cloud.cfg:/etc/cloud/
+            --copy-in config/grub.cfg:/etc/default/grub \
+            --run-command 'grub-mkconfig -o /boot/grub/grub.cfg' \
+            --run-command 'setup-cloud-init'
  
       - name: Sysprep & Sparsify image
         run: |
