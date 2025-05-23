@@ -47,7 +47,7 @@ jobs:
             --run-command 'setup-cloud-init' \
             --run-command 'rc-update add qemu-guest-agent default' \
             --run-command 'rc-update add sshd default' \
-            --run-command 'rc-update add dhcpd default'
+            --run-command 'rc-update add dhcpcd default'
  
       - name: Sysprep & Sparsify image
         run: |
