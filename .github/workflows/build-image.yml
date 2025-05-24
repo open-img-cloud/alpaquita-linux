@@ -51,7 +51,7 @@ jobs:
             --copy-in scripts/serial-config.sh:/tmp/ \
             --run-command 'chmod +x /tmp/*.sh' \
             --run-command '/tmp/serial-config.sh' \
-            --run-command 'rm /tmp/serial-config.sh /tmp/clean-user.sh' \
+            --run-command 'rm /tmp/serial-config.sh' \
             --run-command 'grub-mkconfig -o /boot/grub/grub.cfg' \
             --run-command 'setup-cloud-init' \
             --run-command 'rc-update add qemu-guest-agent default' \
