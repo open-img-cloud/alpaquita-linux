@@ -1,10 +1,6 @@
 name: build_image
 env:
   version: ${{github.ref_name}}
-  OS_URL: https://packages.bell-sw.com/alpaquita/glibc/stream/releases/x86_64/alpaquita-stream-latest-glibc-x86_64.qcow2.xz
-  COMPRESS_BASE_IMAGE: alpaquita-stream-latest-glibc-x86_64.qcow2.xz
-  BASE_OS_IMAGE: alpaquita-stream-latest-glibc-x86_64.qcow2
-
 
 permissions:
   contents: write
@@ -18,48 +14,79 @@ on:
 jobs:
   build:
     runs-on: [self-hosted, Linux, kvm]
+    strategy:
+      matrix:
+        libc: [glibc, musl]
+        include:
+          - libc: glibc
+            os_url: https://packages.bell-sw.com/alpaquita/glibc/stream/releases/x86_64/alpaquita-stream-latest-glibc-x86_64.qcow2.xz
+            compress_image: alpaquita-stream-latest-glibc-x86_64.qcow2.xz
+            base_image: alpaquita-stream-latest-glibc-x86_64.qcow2
+          - libc: musl
+            os_url: https://packages.bell-sw.com/alpaquita/musl/stream/releases/x86_64/alpaquita-stream-latest-musl-x86_64.qcow2.xz
+            compress_image: alpaquita-stream-latest-musl-x86_64.qcow2.xz
+            base_image: alpaquita-stream-latest-musl-x86_64.qcow2
+    
     container:
       image: ghcr.io/net-architect-cloud/docker-libguestfs-tools:latest
       options: --device=/dev/kvm --volume /tmp:/shared
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
       - name: Download base image
         run: |
-          wget "$OS_URL" -O $COMPRESS_BASE_IMAGE
-          xz -d $COMPRESS_BASE_IMAGE
+          wget "${{ matrix.os_url }}" -O ${{ matrix.compress_image }}
+          xz -d ${{ matrix.compress_image }}
           
       - name: Modify base OS image
         run: |
-          virt-customize -a $BASE_OS_IMAGE \
+          virt-customize -a ${{ matrix.base_image }} \
             --run-command 'apk update' \
             --run-command 'apk upgrade' \
-            --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent dhcpcd' \
-            --run-command 'rm /etc/default/grub' \
+            --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent openssh-server dhcpcd' \
             --copy-in config/grub:/etc/default/ \
             --copy-in config/cloud.cfg:/etc/cloud/ \
-            --copy-in config/05_logging.cfg:/etc/cloud/cloud.cfg.d/ \
             --copy-in scripts/serial-config.sh:/tmp/ \
             --run-command 'chmod +x /tmp/*.sh' \
             --run-command '/tmp/serial-config.sh' \
-            --run-command 'rm /tmp/serial-config.sh' \
+            --run-command 'rm /tmp/serial-config.sh /tmp/clean-user.sh' \
             --run-command 'grub-mkconfig -o /boot/grub/grub.cfg' \
             --run-command 'setup-cloud-init' \
             --run-command 'rc-update add qemu-guest-agent default' \
             --run-command 'rc-update add sshd default' \
-            --run-command 'rc-update add dhcpcd default'
+            --run-command 'rc-update add dhcpcd boot'
  
       - name: Sysprep & Sparsify image
         run: |
-            virt-sysprep -a $BASE_OS_IMAGE
-            virt-sparsify --convert qcow2 --compress $BASE_OS_IMAGE alpaquita-${{ env.version }}-glibc-x86_64.qcow2
-            md5sum alpaquita-${{ env.version }}-glibc-x86_64.qcow2 > md5.txt
-            sha1sum -b alpaquita-${{ env.version }}-glibc-x86_64.qcow2 > sha1.txt
-            sha256sum -b alpaquita-${{ env.version }}-glibc-x86_64.qcow2 > sha256.txt
-            cp alpaquita-${{ env.version }}-glibc-x86_64.qcow2 /shared
-            cp md5.txt sha1.txt sha256.txt /shared
-            
+            virt-sysprep -a ${{ matrix.base_image }}
+            virt-sparsify --convert qcow2 --compress ${{ matrix.base_image }} alpaquita-${{ env.version }}-${{ matrix.libc }}-x86_64.qcow2
+            md5sum alpaquita-${{ env.version }}-${{ matrix.libc }}-x86_64.qcow2 > md5-${{ matrix.libc }}.txt
+            sha1sum -b alpaquita-${{ env.version }}-${{ matrix.libc }}-x86_64.qcow2 > sha1-${{ matrix.libc }}.txt
+            sha256sum -b alpaquita-${{ env.version }}-${{ matrix.libc }}-x86_64.qcow2 > sha256-${{ matrix.libc }}.txt
+            cp alpaquita-${{ env.version }}-${{ matrix.libc }}-x86_64.qcow2 /shared
+            cp md5-${{ matrix.libc }}.txt sha1-${{ matrix.libc }}.txt sha256-${{ matrix.libc }}.txt /shared
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: alpaquita-${{ matrix.libc }}-image
+          path: |
+            alpaquita-${{ env.version }}-${{ matrix.libc }}-x86_64.qcow2
+            md5-${{ matrix.libc }}.txt
+            sha1-${{ matrix.libc }}.txt
+            sha256-${{ matrix.libc }}.txt
+  
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
@@ -68,9 +95,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            alpaquita-${{ env.version }}-glibc-x86_64.qcow2
-            md5.txt
-            sha1.txt
-            sha256.txt
+            artifacts/**/*.qcow2
+            artifacts/**/*.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
