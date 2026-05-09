@@ -1,0 +1,132 @@
+# One-shot cleanup workflow.
+#
+# Removes the unsuffixed `MANIFEST.json` and `SHA256SUMS` left over in the
+# `alpaquita-linux` bucket from publishes that ran *before* the variant
+# input landed (cf. open-img-cloud/.github#7). Per-variant files
+# (`MANIFEST-{glibc,musl}.json`, `SHA256SUMS-{glibc,musl}`) are the new
+# canonical names and stay intact.
+#
+# Affected paths on Garage + R2 (bucket `alpaquita-linux`):
+#   2026.04.14/MANIFEST.json
+#   2026.04.14/SHA256SUMS
+#   latest/MANIFEST.json
+#   latest/SHA256SUMS
+#
+# After this workflow has run once successfully, delete this file.
+
+name: Oneshot cleanup of stale files
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'List the keys that would be deleted, but don''t delete'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Validate secrets
+        env:
+          S3_GARAGE_ENDPOINT: ${{ secrets.S3_GARAGE_ENDPOINT }}
+          S3_GARAGE_KEY_ID: ${{ secrets.S3_GARAGE_KEY_ID }}
+          S3_GARAGE_SECRET: ${{ secrets.S3_GARAGE_SECRET }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_KEY_ID: ${{ secrets.R2_KEY_ID }}
+          R2_SECRET: ${{ secrets.R2_SECRET }}
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        shell: bash
+        run: |
+          set -eo pipefail
+          missing=()
+          for v in S3_GARAGE_ENDPOINT S3_GARAGE_KEY_ID S3_GARAGE_SECRET \
+                   R2_ENDPOINT R2_KEY_ID R2_SECRET \
+                   CF_ZONE_ID CF_API_TOKEN; do
+            [[ -z "${!v:-}" ]] && missing+=("$v")
+          done
+          if [[ ${#missing[@]} -gt 0 ]]; then
+            echo "::error::missing secrets: ${missing[*]}"
+            exit 1
+          fi
+
+      - name: Install aws-cli
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v aws >/dev/null; then aws --version; exit 0; fi
+          tmp=$(mktemp -d)
+          curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "$tmp/awscliv2.zip"
+          unzip -q "$tmp/awscliv2.zip" -d "$tmp"
+          sudo "$tmp/aws/install" --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli
+          aws --version
+
+      - name: Delete stale objects from Garage + R2
+        shell: bash
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+          BUCKET: alpaquita-linux
+          GARAGE_ENDPOINT: ${{ secrets.S3_GARAGE_ENDPOINT }}
+          GARAGE_KEY_ID: ${{ secrets.S3_GARAGE_KEY_ID }}
+          GARAGE_SECRET: ${{ secrets.S3_GARAGE_SECRET }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_KEY_ID: ${{ secrets.R2_KEY_ID }}
+          R2_SECRET: ${{ secrets.R2_SECRET }}
+        run: |
+          set -euo pipefail
+          KEYS=(
+            "2026.04.14/MANIFEST.json"
+            "2026.04.14/SHA256SUMS"
+            "latest/MANIFEST.json"
+            "latest/SHA256SUMS"
+          )
+          delete_one() {
+            local label="$1" endpoint="$2" key_id="$3" secret="$4" region="$5" key="$6"
+            echo "::group::${label} :: ${BUCKET}/${key}"
+            if [[ "${DRY_RUN}" == "true" ]]; then
+              AWS_ACCESS_KEY_ID="$key_id" AWS_SECRET_ACCESS_KEY="$secret" AWS_REGION="$region" \
+                aws s3api head-object --endpoint-url "$endpoint" \
+                  --bucket "$BUCKET" --key "$key" 2>&1 | head -5 || echo "(not present — nothing to delete)"
+              echo "[dry-run] would: aws s3 rm s3://${BUCKET}/${key}"
+            else
+              AWS_ACCESS_KEY_ID="$key_id" AWS_SECRET_ACCESS_KEY="$secret" AWS_REGION="$region" \
+                aws s3 rm "s3://${BUCKET}/${key}" --endpoint-url "$endpoint" || \
+                echo "(rm reported failure or already gone — continuing)"
+            fi
+            echo "::endgroup::"
+          }
+          for key in "${KEYS[@]}"; do
+            delete_one Garage "$GARAGE_ENDPOINT" "$GARAGE_KEY_ID" "$GARAGE_SECRET" garage "$key"
+            delete_one R2     "$R2_ENDPOINT"     "$R2_KEY_ID"     "$R2_SECRET"     auto    "$key"
+          done
+
+      - name: Purge Cloudflare cache for deleted paths
+        if: ${{ ! inputs.dry_run }}
+        shell: bash
+        env:
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          urls=(
+            "https://images.openimages.cloud/alpaquita-linux/2026.04.14/MANIFEST.json"
+            "https://images.openimages.cloud/alpaquita-linux/2026.04.14/SHA256SUMS"
+            "https://images.openimages.cloud/alpaquita-linux/latest/MANIFEST.json"
+            "https://images.openimages.cloud/alpaquita-linux/latest/SHA256SUMS"
+          )
+          body=$(printf '%s\n' "${urls[@]}" | jq -R . | jq -sc '{files: .}')
+          echo "Purging:"
+          printf '  %s\n' "${urls[@]}"
+          resp=$(curl -fsS -X POST \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data "$body" \
+            "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/purge_cache")
+          echo "$resp" | jq .
+          [[ "$(echo "$resp" | jq -r .success)" == "true" ]] || { echo "::error::CF purge failed"; exit 1; }
