@@ -77,15 +77,20 @@ sha256sum -c <filename>.sha256                    # integrity
 cosign verify-blob \
     --bundle <filename>.bundle \
     --new-bundle-format \
-    --certificate-identity-regexp '^https://github.com/open-img-cloud/alpaquita-linux/' \
+    --certificate-identity-regexp '^https://github.com/open-img-cloud/\.github/\.github/workflows/build-libguestfs-image\.yml@' \
     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
     <filename>                                     # provenance
 ```
 
-The signature certificate identity points back to this repo's release
-workflow on GitHub Actions; OIDC issuer is GitHub's. A successful
-`Verified OK` proves the qcow2 was produced by this repo's CI from the
-exact commit listed in `MANIFEST-<variant>.json`.
+The certificate identity points at the **reusable** build workflow in
+`open-img-cloud/.github` — that's where GitHub's OIDC binds the SAN for
+keyless signing, regardless of which caller repo (`alpaquita-linux`,
+`alpine-linux`, …) invoked it. To tie the artifact back to *this*
+repo's commit, also check `MANIFEST-<variant>.json`: it pins the
+caller `commit` SHA, the workflow run URL, and the builder image
+digest. A successful `Verified OK` plus a matching MANIFEST proves the
+qcow2 was produced by the open-img-cloud shared pipeline from the
+listed alpaquita-linux commit.
 
 ## How to use
 
