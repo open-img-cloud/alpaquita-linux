@@ -19,10 +19,14 @@ fi
 echo "[customize] target: $QCOW2"
 echo "[customize] config: $CONFIG_DIR"
 
+# NOTE: virt-customize's `--install` relies on libguestfs's OS inspection to
+# pick the right package manager. Alpaquita is an Alpine fork but isn't
+# recognized; libguestfs returns "no package manager detected". Use explicit
+# `--run-command 'apk add ...'` instead (matches the legacy workflow).
 virt-customize -a "$QCOW2" \
   --run-command 'apk update' \
   --run-command 'apk upgrade' \
-  --install cloud-init,python3,py3-yaml,py3-requests,e2fsprogs-extra,util-linux,shadow,sudo,qemu-guest-agent,openssh-server,dhcpcd \
+  --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent openssh-server dhcpcd' \
   --copy-in "${CONFIG_DIR}/cloud.cfg:/etc/cloud/" \
   --copy-in "${CONFIG_DIR}/grub:/etc/default/" \
   --copy-in "${CONFIG_DIR}/serial-config.sh:/usr/local/sbin/" \
