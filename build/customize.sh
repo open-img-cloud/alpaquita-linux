@@ -29,6 +29,7 @@ virt-customize -a "$QCOW2" \
   --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent openssh-server dhcpcd' \
   --copy-in "${CONFIG_DIR}/cloud.cfg:/etc/cloud/" \
   --copy-in "${CONFIG_DIR}/grub:/etc/default/" \
+  --mkdir /usr/local/sbin \
   --copy-in "${CONFIG_DIR}/serial-config.sh:/usr/local/sbin/" \
   --run-command 'chmod +x /usr/local/sbin/serial-config.sh && /usr/local/sbin/serial-config.sh' \
   --run-command 'grub-mkconfig -o /boot/grub/grub.cfg' \
