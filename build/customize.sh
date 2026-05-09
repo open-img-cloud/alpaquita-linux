@@ -36,6 +36,7 @@ virt-customize -a "$QCOW2" \
   --run-command 'setup-cloud-init' \
   --run-command 'rc-update add qemu-guest-agent default' \
   --run-command 'rc-update add sshd default' \
-  --run-command 'rc-update add dhcpcd boot'
+  --run-command 'rc-update add dhcpcd boot' \
+  --run-command 'rm -rf /var/cache/apk/* /tmp/* /var/tmp/*'
 
 echo "[customize] done"

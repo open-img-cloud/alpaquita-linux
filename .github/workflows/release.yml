@@ -53,6 +53,7 @@ jobs:
     with:
       os_name: alpaquita-linux
       version: ${{ needs.resolve-version.outputs.version }}
+      variant: ${{ matrix.libc }}   # avoids MANIFEST.json/SHA256SUMS collision between glibc and musl jobs
       output_filename: 'alpaquita-{version}-${{ matrix.libc }}-x86_64.qcow2'
       upstream_url: 'https://packages.bell-sw.com/alpaquita/${{ matrix.libc }}/stream/releases/x86_64/alpaquita-stream-latest-${{ matrix.libc }}-x86_64.qcow2.xz'
       decompress: xz
