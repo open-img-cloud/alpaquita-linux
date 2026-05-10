@@ -60,6 +60,7 @@ jobs:
       customize_script: build/customize.sh
       run_sysprep: true
       sparsify_compress: true
+      runtime_smoke_login_user: alpaquita
       publish: ${{ inputs.publish == true || github.event_name == 'push' }}
       sync_latest: true
     secrets: inherit
