@@ -23,11 +23,15 @@ echo "[customize] config: $CONFIG_DIR"
 # pick the right package manager. Alpaquita is an Alpine fork but isn't
 # recognized; libguestfs returns "no package manager detected". Use explicit
 # `--run-command 'apk add ...'` instead (matches the legacy workflow).
+# Org-wide cloud-init policy (datasource_list, disable_root, ssh_pwauth,
+# mount_default_fields) is now injected by the reusable workflow via
+# `templates/cloud.cfg.d/99_oic-policy.cfg` AFTER this script runs. Cloud-init
+# merges the drop-in with whatever cloud.cfg the upstream alpaquita-cloud-init
+# package ships, so we no longer maintain a full-replacement cloud.cfg here.
 virt-customize -a "$QCOW2" \
   --run-command 'apk update' \
   --run-command 'apk upgrade' \
   --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent openssh-server dhcpcd' \
-  --copy-in "${CONFIG_DIR}/cloud.cfg:/etc/cloud/" \
   --copy-in "${CONFIG_DIR}/grub:/etc/default/" \
   --mkdir /usr/local/sbin \
   --copy-in "${CONFIG_DIR}/serial-config.sh:/usr/local/sbin/" \
