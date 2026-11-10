@@ -12,7 +12,7 @@
 # get a fresh release). Format: YYYY.MM.DD. Git tag: `v<VERSION>`.
 #
 # This script runs in the upstream-watch reusable workflow (no KVM
-# needed) — keep it portable bash + curl + GNU date only.
+# needed): keep it portable bash + curl + GNU date only.
 
 set -euo pipefail
 
