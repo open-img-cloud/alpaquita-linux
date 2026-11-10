@@ -83,7 +83,7 @@ cosign verify-blob \
 ```
 
 The certificate identity points at the **reusable** build workflow in
-`open-img-cloud/.github` — that's where GitHub's OIDC binds the SAN for
+`open-img-cloud/.github`: that's where GitHub's OIDC binds the SAN for
 keyless signing, regardless of which caller repo (`alpaquita-linux`,
 `alpine-linux`, …) invoked it. To tie the artifact back to *this*
 repo's commit, also check `MANIFEST-<variant>.json`: it pins the
@@ -167,7 +167,7 @@ Distributed under the GPL-2.0 License. See `LICENSE`.
 
 ## Contact
 
-Kevin Allioli — kevin@stackops.ch · [@stackopshq](https://twitter.com/stackopshq)
+Kevin Allioli · kevin@stackops.ch · [@stackopshq](https://twitter.com/stackopshq)
 
 Project: [open-img-cloud/alpaquita-linux](https://github.com/open-img-cloud/alpaquita-linux)
 
