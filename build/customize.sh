@@ -31,7 +31,7 @@ echo "[customize] config: $CONFIG_DIR"
 virt-customize -a "$QCOW2" \
   --run-command 'apk update' \
   --run-command 'apk upgrade' \
-  --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent openssh-server dhcpcd' \
+  --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent openssh-server' \
   --copy-in "${CONFIG_DIR}/grub:/etc/default/" \
   --mkdir /usr/local/sbin \
   --copy-in "${CONFIG_DIR}/serial-config.sh:/usr/local/sbin/" \
@@ -40,7 +40,8 @@ virt-customize -a "$QCOW2" \
   --run-command 'setup-cloud-init' \
   --run-command 'rc-update add qemu-guest-agent default' \
   --run-command 'rc-update add sshd default' \
-  --run-command 'rc-update del dhcpcd boot 2>/dev/null || true' \
+  --run-command 'rc-update del dhcpcd boot 2>/dev/null || true; apk del dhcpcd 2>/dev/null || true' \
+  --run-command 'rc-update add networking boot' \
   --run-command 'rm -rf /var/cache/apk/* /tmp/* /var/tmp/*'
 
 echo "[customize] done"
