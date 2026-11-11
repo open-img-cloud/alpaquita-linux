@@ -42,6 +42,8 @@ virt-customize -a "$QCOW2" \
   --run-command 'rc-update add sshd default' \
   --run-command 'rc-update del dhcpcd boot 2>/dev/null || true; apk del dhcpcd 2>/dev/null || true' \
   --run-command 'rc-update add networking boot' \
+  --copy-in "${CONFIG_DIR}/99-oic-ipv6.conf:/etc/sysctl.d/" \
+  --run-command 'rc-update add sysctl boot' \
   --mkdir /var/lib/cloud/scripts/per-instance \
   --copy-in "${CONFIG_DIR}/oic-unlock-ssh-users.sh:/var/lib/cloud/scripts/per-instance/" \
   --run-command 'chmod 0755 /var/lib/cloud/scripts/per-instance/oic-unlock-ssh-users.sh' \
