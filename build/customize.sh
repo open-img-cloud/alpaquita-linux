@@ -31,7 +31,7 @@ echo "[customize] config: $CONFIG_DIR"
 virt-customize -a "$QCOW2" \
   --run-command 'apk update' \
   --run-command 'apk upgrade' \
-  --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent openssh-server dhcpcd' \
+  --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent openssh-server' \
   --copy-in "${CONFIG_DIR}/grub:/etc/default/" \
   --mkdir /usr/local/sbin \
   --copy-in "${CONFIG_DIR}/serial-config.sh:/usr/local/sbin/" \
@@ -40,7 +40,16 @@ virt-customize -a "$QCOW2" \
   --run-command 'setup-cloud-init' \
   --run-command 'rc-update add qemu-guest-agent default' \
   --run-command 'rc-update add sshd default' \
-  --run-command 'rc-update add dhcpcd boot' \
+  --run-command 'rc-update del dhcpcd boot 2>/dev/null || true; apk del dhcpcd 2>/dev/null || true' \
+  --run-command 'rc-update add networking boot' \
+  --copy-in "${CONFIG_DIR}/99-oic-ipv6.conf:/etc/sysctl.d/" \
+  --run-command 'rc-update add sysctl boot' \
+  --mkdir /etc/ssh/sshd_config.d \
+  --copy-in "${CONFIG_DIR}/50-oic.conf:/etc/ssh/sshd_config.d/" \
+  --run-command 'grep -q "^Include /etc/ssh/sshd_config.d/" /etc/ssh/sshd_config || sed -i "1i Include /etc/ssh/sshd_config.d/*.conf" /etc/ssh/sshd_config' \
+  --mkdir /var/lib/cloud/scripts/per-boot \
+  --copy-in "${CONFIG_DIR}/oic-unlock-users.sh:/var/lib/cloud/scripts/per-boot/" \
+  --run-command 'chmod 0755 /var/lib/cloud/scripts/per-boot/oic-unlock-users.sh' \
   --run-command 'rm -rf /var/cache/apk/* /tmp/* /var/tmp/*'
 
 echo "[customize] done"
