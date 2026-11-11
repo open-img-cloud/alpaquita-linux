@@ -44,8 +44,9 @@ virt-customize -a "$QCOW2" \
   --run-command 'rc-update add networking boot' \
   --copy-in "${CONFIG_DIR}/99-oic-ipv6.conf:/etc/sysctl.d/" \
   --run-command 'rc-update add sysctl boot' \
-  --copy-in "${CONFIG_DIR}/oic-unlock-users:/etc/init.d/" \
-  --run-command 'chmod 0755 /etc/init.d/oic-unlock-users && rc-update add oic-unlock-users default' \
+  --mkdir /var/lib/cloud/scripts/per-boot \
+  --copy-in "${CONFIG_DIR}/oic-unlock-users.sh:/var/lib/cloud/scripts/per-boot/" \
+  --run-command 'chmod 0755 /var/lib/cloud/scripts/per-boot/oic-unlock-users.sh' \
   --run-command 'rm -rf /var/cache/apk/* /tmp/* /var/tmp/*'
 
 echo "[customize] done"
