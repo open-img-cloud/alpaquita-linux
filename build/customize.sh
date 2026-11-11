@@ -31,7 +31,7 @@ echo "[customize] config: $CONFIG_DIR"
 virt-customize -a "$QCOW2" \
   --run-command 'apk update' \
   --run-command 'apk upgrade' \
-  --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent openssh-server' \
+  --run-command 'apk add cloud-init python3 py3-yaml py3-requests e2fsprogs-extra util-linux shadow sudo qemu-guest-agent openssh-server dhcpcd' \
   --copy-in "${CONFIG_DIR}/grub:/etc/default/" \
   --mkdir /usr/local/sbin \
   --copy-in "${CONFIG_DIR}/serial-config.sh:/usr/local/sbin/" \
@@ -40,7 +40,8 @@ virt-customize -a "$QCOW2" \
   --run-command 'setup-cloud-init' \
   --run-command 'rc-update add qemu-guest-agent default' \
   --run-command 'rc-update add sshd default' \
-  --run-command 'rc-update del dhcpcd boot 2>/dev/null || true; apk del dhcpcd 2>/dev/null || true' \
+  --run-command 'rc-update del dhcpcd boot 2>/dev/null || true' \
+  --run-command 'sed -i "s/^slaac private/slaac hwaddr/" /etc/dhcpcd.conf && grep -q "^slaac hwaddr" /etc/dhcpcd.conf' \
   --run-command 'rc-update add networking boot' \
   --copy-in "${CONFIG_DIR}/99-oic-ipv6.conf:/etc/sysctl.d/" \
   --run-command 'rc-update add sysctl boot' \
