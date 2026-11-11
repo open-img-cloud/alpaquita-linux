@@ -44,6 +44,9 @@ virt-customize -a "$QCOW2" \
   --run-command 'rc-update add networking boot' \
   --copy-in "${CONFIG_DIR}/99-oic-ipv6.conf:/etc/sysctl.d/" \
   --run-command 'rc-update add sysctl boot' \
+  --mkdir /etc/ssh/sshd_config.d \
+  --copy-in "${CONFIG_DIR}/50-oic.conf:/etc/ssh/sshd_config.d/" \
+  --run-command 'grep -q "^Include /etc/ssh/sshd_config.d/" /etc/ssh/sshd_config || sed -i "1i Include /etc/ssh/sshd_config.d/*.conf" /etc/ssh/sshd_config' \
   --mkdir /var/lib/cloud/scripts/per-boot \
   --copy-in "${CONFIG_DIR}/oic-unlock-users.sh:/var/lib/cloud/scripts/per-boot/" \
   --run-command 'chmod 0755 /var/lib/cloud/scripts/per-boot/oic-unlock-users.sh' \
