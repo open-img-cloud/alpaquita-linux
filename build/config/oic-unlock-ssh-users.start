@@ -1,5 +1,7 @@
 #!/bin/sh
-# cloud-init per-instance script (runs after the users are created).
+# OpenRC local.d script: the `local` service runs it at the end of every
+# boot, after cloud-init has created and locked the users. (Alpaquita's
+# cloud-init configuration does not run per-instance scripts.)
 #
 # cloud-init locks the default user's password with "!" in /etc/shadow.
 # Without PAM (musl), OpenSSH treats a "!" password as a locked account and

@@ -44,9 +44,8 @@ virt-customize -a "$QCOW2" \
   --run-command 'rc-update add networking boot' \
   --copy-in "${CONFIG_DIR}/99-oic-ipv6.conf:/etc/sysctl.d/" \
   --run-command 'rc-update add sysctl boot' \
-  --mkdir /var/lib/cloud/scripts/per-instance \
-  --copy-in "${CONFIG_DIR}/oic-unlock-ssh-users.sh:/var/lib/cloud/scripts/per-instance/" \
-  --run-command 'chmod 0755 /var/lib/cloud/scripts/per-instance/oic-unlock-ssh-users.sh' \
+  --copy-in "${CONFIG_DIR}/oic-unlock-ssh-users.start:/etc/local.d/" \
+  --run-command 'chmod 0755 /etc/local.d/oic-unlock-ssh-users.start && rc-update add local default' \
   --run-command 'rm -rf /var/cache/apk/* /tmp/* /var/tmp/*'
 
 echo "[customize] done"
