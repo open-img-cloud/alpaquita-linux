@@ -1,0 +1,18 @@
+# Publishes a release when VERSION changes on main (merging the upstream bump
+# PR is enough): tags v<VERSION> and starts release.yml on it. See
+# open-img-cloud/.github/.github/workflows/release-on-version.yml.
+name: Release on VERSION change
+
+on:
+  push:
+    branches: [main]
+    paths: [VERSION]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  release:
+    uses: open-img-cloud/.github/.github/workflows/release-on-version.yml@main
