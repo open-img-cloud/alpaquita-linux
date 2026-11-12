@@ -1,190 +1,130 @@
-<div id="top"></div>
-
-<!-- PROJECT SHIELDS -->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![GPL-2.0 License][license-shield]][license-url]
-
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/open-img-cloud/alpaquita-linux">
-    <img src="img/logo.png" alt="Logo" width="220">
+<p align="center">
+  <a href="https://openimages.cloud/images/alpaquita-linux/">
+    <img src="https://openimages.cloud/img/og/alpaquita-linux.png" alt="Alpaquita Linux cloud image for OpenStack and Proxmox" width="720">
   </a>
+</p>
 
-<h3 align="center">Alpaquita Linux Cloud Images</h3>
+<p align="center">
+  <a href="https://openimages.cloud/images/alpaquita-linux/"><img alt="Latest version (glibc)" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fimages.openimages.cloud%2Falpaquita-linux%2Flatest%2FMANIFEST-glibc.json&query=%24.version&label=latest%20glibc&color=2459c4&cacheSeconds=3600"></a>
+  <a href="https://openimages.cloud/images/alpaquita-linux/"><img alt="Latest version (musl)" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fimages.openimages.cloud%2Falpaquita-linux%2Flatest%2FMANIFEST-musl.json&query=%24.version&label=latest%20musl&color=2459c4&cacheSeconds=3600"></a>
+  <a href="https://github.com/open-img-cloud/alpaquita-linux/actions/workflows/release.yml"><img alt="Release" src="https://github.com/open-img-cloud/alpaquita-linux/actions/workflows/release.yml/badge.svg"></a>
+  <a href="https://openimages.cloud/verify/"><img alt="Signed with Sigstore cosign" src="https://img.shields.io/badge/signed-Sigstore%20cosign-2459c4"></a>
+  <a href="https://openimages.cloud/quality/"><img alt="Boot-tested on OpenStack" src="https://img.shields.io/badge/boot--tested-OpenStack-2459c4"></a>
+  <a href="LICENSE"><img alt="License GPL-2.0" src="https://img.shields.io/badge/license-GPL--2.0-555"></a>
+</p>
 
-  <p align="center">
-    Cloud-init-ready, signed Alpaquita Linux images for OpenStack and Proxmox
-    <br />
-    <br />
-    <a href="https://github.com/open-img-cloud/alpaquita-linux/issues">Report a bug</a>
-    ·
-    <a href="https://github.com/open-img-cloud/alpaquita-linux/issues">Request a feature</a>
-  </p>
-</div>
+<p align="center">
+  <a href="https://openimages.cloud/images/alpaquita-linux/"><b>Catalog page</b></a> ·
+  <a href="https://images.openimages.cloud/alpaquita-linux/latest/">Download</a> ·
+  <a href="https://openimages.cloud/verify/">Verify</a> ·
+  <a href="https://github.com/open-img-cloud/docs">Documentation</a> ·
+  <a href="https://github.com/open-img-cloud/alpaquita-linux/issues">Report an issue</a>
+</p>
 
-## About
+Alpaquita Linux cloud image (qcow2) for **OpenStack** and **Proxmox**: the BellSoft Alpaquita
+Stream image, verified, made ready for both clouds with the same rules as every
+[openimages.cloud](https://openimages.cloud) image, signed with Sigstore cosign and boot-tested
+on a real OpenStack before it is published. Two C library variants are built from each release.
 
-This repo builds [Alpaquita Linux][alpaquita] cloud images on top of the
-upstream Bell-SW [Stream qcow2][upstream-glibc] and customizes them via
-`virt-customize` for OpenStack-style infrastructures. Both **glibc** and
-**musl** libc variants are produced.
+## At a glance
 
-The build pipeline is shared with the rest of [`open-img-cloud`][org]:
-this repo only ships the `VERSION`, `customize.sh`, `detect-upstream.sh`,
-config files, and two thin caller workflows that delegate to the
-reusable workflows in [`open-img-cloud/.github`][shared] (`@main`).
+| | |
+|---|---|
+| **Upstream** | [Alpaquita Linux](https://bell-sw.com/alpaquita-linux/) Stream `alpaquita-stream-latest-<libc>-x86_64.qcow2.xz` from BellSoft, checked against the `.sha256` published next to it |
+| **Default user** | `alpaquita`, SSH key only, passwordless `sudo` |
+| **Variants** | `glibc`: GNU C library, widest binary compatibility. `musl`: musl libc, smallest footprint |
+| **Firmware** | BIOS |
+| **Format** | qcow2, x86_64, root filesystem grown to the disk at first boot |
+| **Version** | the upstream publication date, `YYYY.MM.DD`, e.g. `2026.11.11`; one manifest per variant, `MANIFEST-glibc.json` and `MANIFEST-musl.json` ([all versions](https://images.openimages.cloud/alpaquita-linux/versions.json)) |
+| **Support** | follows the Alpaquita Stream releases: each new upstream image becomes a new image |
 
-Customizations applied to the upstream rootfs:
-
-- **cloud-init** with `OpenStack` + `ConfigDrive` datasources, default
-  user `alpaquita` (sudo NOPASSWD, ssh-key-only, `lock_passwd: False`)
-- **qemu-guest-agent**, **openssh-server**, **dhcpcd** enabled at boot
-- **Serial console** wired (`ttyS0,115200n8`) for cloud / hypervisor consoles
-- **`apk update && upgrade`** at build time, `/var/cache/apk` purged after
-- **`virt-sysprep`** to clean transient state, then `virt-sparsify --compress`
-
-Each release publishes:
-
-- `alpaquita-<version>-{glibc,musl}-x86_64.qcow2`
-- `*.sha256`, `*.sha1`, `*.md5` per-file
-- `*.bundle` cosign sigstore-bundle (signature + cert + Rekor proof)
-- `MANIFEST-glibc.json` + `MANIFEST-musl.json` (per-variant build metadata,
-  including the builder image digest used to produce the qcow2)
-- `index.html` directory listing
-
-## Where to download
-
-Public CDN, served via Cloudflare in front of an R2 bucket (mirror of
-the source-of-truth Garage):
-
-| URL pattern                                                                            | Cache policy                  |
-|----------------------------------------------------------------------------------------|-------------------------------|
-| `https://images.openimages.cloud/alpaquita-linux/<version>/<filename>`                 | `max-age=31536000, immutable` |
-| `https://images.openimages.cloud/alpaquita-linux/latest/<filename>`                    | `max-age=300`                 |
-
-Browse: [images.openimages.cloud/alpaquita-linux/latest/][latest]
-
-## Verify before deploy
-
-cosign 3.x:
+## Quick start
 
 ```sh
-sha256sum -c <filename>.sha256                    # integrity
-cosign verify-blob \
-    --bundle <filename>.bundle \
-    --new-bundle-format \
-    --certificate-identity-regexp '^https://github.com/open-img-cloud/\.github/\.github/workflows/build-libguestfs-image\.yml@' \
-    --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-    <filename>                                     # provenance
+# Pick the variant: glibc or musl
+VARIANT=glibc
+# Latest version and its file name, from the signed manifest of that variant
+M=https://images.openimages.cloud/alpaquita-linux/latest/MANIFEST-$VARIANT.json
+V=$(curl -fsS $M | jq -r .version); F=$(curl -fsS $M | jq -r .filename)
+curl -fLO https://images.openimages.cloud/alpaquita-linux/$V/$F
 ```
 
-The certificate identity points at the **reusable** build workflow in
-`open-img-cloud/.github`: that's where GitHub's OIDC binds the SAN for
-keyless signing, regardless of which caller repo (`alpaquita-linux`,
-`alpine-linux`, …) invoked it. To tie the artifact back to *this*
-repo's commit, also check `MANIFEST-<variant>.json`: it pins the
-caller `commit` SHA, the workflow run URL, and the builder image
-digest. A successful `Verified OK` plus a matching MANIFEST proves the
-qcow2 was produced by the open-img-cloud shared pipeline from the
-listed alpaquita-linux commit.
-
-## How to use
-
-### OpenStack
+<details>
+<summary><b>OpenStack</b></summary>
 
 ```sh
-# Pull the qcow2 (replace <V> with the desired version, e.g. 2026.04.14)
-curl -fLO https://images.openimages.cloud/alpaquita-linux/<V>/alpaquita-<V>-glibc-x86_64.qcow2
-
-openstack image create \
-    --disk-format qcow2 --container-format bare \
-    --file alpaquita-<V>-glibc-x86_64.qcow2 \
-    'Alpaquita Linux Stream (glibc) <V>'
+openstack image create --disk-format qcow2 --container-format bare \
+  --property os_distro=alpaquita \
+  --property hw_qemu_guest_agent=yes --property os_admin_user=alpaquita \
+  --file "$F" "Alpaquita Linux $V ($VARIANT)"
 ```
 
-### Proxmox VE
+The full property set (SCSI disk, multiqueue, quiesced snapshots) is on the
+[catalog page](https://openimages.cloud/images/alpaquita-linux/) and in
+[`index.json`](https://images.openimages.cloud/index.json). To keep images up to date
+automatically, use [oic-sync](https://github.com/open-img-cloud/oic-sync).
+
+</details>
+
+<details>
+<summary><b>Proxmox VE</b></summary>
+
+The commands to create a cloud-init template from this image are on the
+[catalog page](https://openimages.cloud/images/alpaquita-linux/).
+
+</details>
+
+<details>
+<summary><b>Verify the signature</b></summary>
 
 ```sh
-# Copy to Proxmox host
-scp alpaquita-<V>-glibc-x86_64.qcow2 root@proxmox:/var/lib/vz/template/iso/
-
-# On Proxmox: create a cloud-init template from the disk
-qm create <VMID> --name alpaquita-template --memory 1024 --cores 2 --net0 virtio,bridge=vmbr0
-qm importdisk <VMID> alpaquita-<V>-glibc-x86_64.qcow2 <STORAGE>
-qm set <VMID> --scsihw virtio-scsi-pci --scsi0 <STORAGE>:vm-<VMID>-disk-0
-qm set <VMID> --boot c --bootdisk scsi0
-qm set <VMID> --ide2 <STORAGE>:cloudinit
-qm set <VMID> --serial0 socket --vga serial0
-qm set <VMID> --ciuser alpaquita --sshkeys ~/.ssh/authorized_keys --ipconfig0 ip=dhcp
+curl -fLO https://images.openimages.cloud/alpaquita-linux/$V/$F.bundle
+cosign verify-blob "$F" --bundle "$F.bundle" \
+  --certificate-identity-regexp '^https://github.com/open-img-cloud/\.github/\.github/workflows/build-(libguestfs|dib|nix-flake|freebsd)-image\.yml@' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
 
-## Release flow
+</details>
 
-1. **`watch.yml`** runs daily 06:17 UTC, calls `build/detect-upstream.sh`
-   which polls Bell-SW's `Last-Modified` header on both glibc and musl
-   `-latest-` URLs and prints `YYYY.MM.DD` (max of the two).
-2. If the date differs from the current `VERSION`, the workflow opens
-   (or updates) a PR `auto/upstream-bump`.
-3. Merging the PR + pushing a `v<VERSION>` tag fires `release.yml`,
-   which calls the shared `build-libguestfs-image.yml@main` reusable
-   workflow once per `libc` (`glibc`, `musl`).
-4. Each build verifies the upstream qcow2.xz SHA256, runs
-   `customize.sh`, sysprep, sparsify, signs, and uploads to Garage + R2
-   under `s3://alpaquita-linux/<version>/`. The `latest/` alias is
-   replaced and Cloudflare cache for `latest/` is purged.
+## What this image changes
 
-## Repository layout
+The upstream image is a plain system, so this one does more than most:
 
-```
-VERSION                          single line, e.g. "2026.04.14"
-build/
-  customize.sh                   virt-customize hook (qcow2 path as $1)
-  detect-upstream.sh             prints latest upstream version (max glibc, musl)
-  config/
-    cloud.cfg                    cloud-init config copied to /etc/cloud/
-    grub                         GRUB defaults with serial console
-    serial-config.sh             enables ttyS0 in inittab + securetty
-.github/workflows/
-  release.yml                    calls build-libguestfs-image.yml on tag push
-  watch.yml                      daily cron, calls upstream-watch.yml
-.gitignore                       repo-local override for global build/ exclusion
-LICENSE                          GPL-2.0
-```
+- upgrades all packages at build time, then installs cloud-init (with its Python
+  dependencies), `qemu-guest-agent`, OpenSSH, dhcpcd, `sudo` and the tools cloud-init needs to
+  grow the disk, and enables them at boot;
+- sends the kernel and GRUB to the serial console (`ttyS0`) as well as the screen, and enables
+  a login there;
+- IPv6: accepts router advertisements on every interface and sets dhcpcd to `slaac hwaddr`
+  instead of `slaac private`, so the instance keeps the MAC-derived link-local address Neutron
+  expects and gets the IPv6 address of its port;
+- adds an SSH drop-in that turns off password and keyboard-interactive authentication;
+- unlocks the default user for SSH at every boot: cloud-init locks its password with `!`, and
+  without PAM (musl) OpenSSH then refuses even key logins. The password is replaced with `*`,
+  which still allows no password login;
+- adds the openimages.cloud cloud-init policy: config drive read first, then the metadata
+  service; no root login, no SSH password;
+- cleans package caches and machine identity so every instance starts fresh.
 
-## Contributing
+Every release must pass the same [runtime contract](https://openimages.cloud/quality/) on
+OpenStack: SSH with the injected key, cloud-init finished, DNS, hostname, root filesystem grown,
+passwordless `sudo`, IPv6 address and egress.
 
-Fork, branch, PR. Keep changes focused; the customize hook in particular
-is consumed by the shared pipeline so backward-compatible tweaks are
-preferred over rewrites.
+## How releases happen
+
+1. Every day at 06:17 UTC a watcher looks for a new upstream image and opens a pull request
+   that bumps [`VERSION`](VERSION).
+2. Merging it is all it takes: the release is tagged, both variants are built, signed,
+   boot-tested and published, then `latest/` and the [catalog](https://openimages.cloud/images/)
+   move to it.
+
+This repository only holds what is specific to Alpaquita Linux: [`VERSION`](VERSION),
+[`build/customize.sh`](build/customize.sh), [`build/config/`](build/config),
+[`build/detect-upstream.sh`](build/detect-upstream.sh) and thin workflows calling the shared
+pipeline in [`open-img-cloud/.github`](https://github.com/open-img-cloud/.github).
 
 ## License
 
-Distributed under the GPL-2.0 License. See `LICENSE`.
-
-## Contact
-
-Kevin Allioli · kevin@stackops.ch · [@stackopshq](https://twitter.com/stackopshq)
-
-Project: [open-img-cloud/alpaquita-linux](https://github.com/open-img-cloud/alpaquita-linux)
-
-[alpaquita]: https://bell-sw.com/alpaquita-linux/
-[upstream-glibc]: https://packages.bell-sw.com/alpaquita/glibc/stream/releases/x86_64/
-[org]: https://github.com/open-img-cloud
-[shared]: https://github.com/open-img-cloud/.github
-[latest]: https://images.openimages.cloud/alpaquita-linux/latest/
-
-<!-- shields -->
-[contributors-shield]: https://img.shields.io/github/contributors/open-img-cloud/alpaquita-linux.svg?style=for-the-badge
-[contributors-url]: https://github.com/open-img-cloud/alpaquita-linux/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/open-img-cloud/alpaquita-linux.svg?style=for-the-badge
-[forks-url]: https://github.com/open-img-cloud/alpaquita-linux/network/members
-[stars-shield]: https://img.shields.io/github/stars/open-img-cloud/alpaquita-linux.svg?style=for-the-badge
-[stars-url]: https://github.com/open-img-cloud/alpaquita-linux/stargazers
-[issues-shield]: https://img.shields.io/github/issues/open-img-cloud/alpaquita-linux.svg?style=for-the-badge
-[issues-url]: https://github.com/open-img-cloud/alpaquita-linux/issues
-[license-shield]: https://img.shields.io/github/license/open-img-cloud/alpaquita-linux.svg?style=for-the-badge
-[license-url]: https://github.com/open-img-cloud/alpaquita-linux/blob/main/LICENSE
+The build tooling in this repository is under [GPL-2.0](LICENSE). The image keeps the licensing
+terms of Alpaquita Linux (each package under its own license). Alpaquita is a trademark of its
+owner; this project is not affiliated with BellSoft.
