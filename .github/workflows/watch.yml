@@ -12,5 +12,7 @@ permissions:
 jobs:
   watch:
     uses: open-img-cloud/.github/.github/workflows/upstream-watch.yml@main
+    secrets:
+      OIC_BOT_PRIVATE_KEY: ${{ secrets.OIC_BOT_PRIVATE_KEY }}
     with:
       os_name: alpaquita-linux
